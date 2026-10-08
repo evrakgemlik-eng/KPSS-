@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPSS İlan Avcısı</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #16a34a;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        aside {
+            width: 340px;
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+        }
+
+        aside h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .btn-search {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-search:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Main Content Styles */
+        main {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .alert-box {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .metric-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .metric-card .label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Job Cards */
+        .job-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .job-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .badge-green { background: #dcfce7; color: #15803d; }
+        .badge-yellow { background: #fef9c3; color: #a16207; }
+        .badge-red { background: #fee2e2; color: #b91c1c; }
+
+        .job-details {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            font-size: 0.9rem;
+        }
+
+        .reasons-list, .warnings-list {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+
+        .reasons-list li { color: var(--success-color); }
+        .warnings-list li { color: var(--warning-color); }
+
+        .apply-btn {
+            display: inline-block;
+            margin-top: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .export-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            body { flex-direction: column; }
+            aside { width: 100%; height: auto; position: static; }
+            .job-details { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside>
+        <h2>👤 Aday Profili</h2>
+        
+        <div class="form-group">
+            <label>KPSS Puanı</label>
+            <input type="number" id="kpssScore" value="74.00" step="0.01">
+        </div>
+
+        <div class="form-group">
+            <label>KPSS Puan Türü</label>
+            <select id="kpssType">
+                <option value="P3" selected>P3 (Lisans)</option>
+                <option value="P93">P93 (Ön Lisans)</option>
+                <option value="P94">P94 (Ortaöğretim)</option>
+                <option value="P1">P1</option>
+                <option value="P2">P2</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Mezun olunan / Aranan Bölümler</label>
+            <textarea id="departments">Siyaset Bilimi ve Kamu Yönetimi&#10;Kamu Yönetimi&#10;İktisadi ve İdari Bilimler Fakültesi&#10;İİBF</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Nitelik Kodları</label>
+            <input type="text" id="qualCodes" value="6225, 4001">
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="hasCert" checked>
+            <label for="hasCert">Bilgisayar Sertifikam Var (6225)</label>
+        </div>
+
+        <div class="form-group">
+            <label>Hedef Pozisyonlar</label>
+            <textarea id="targetJobs">memur&#10;büro personeli&#10;veri hazırlama ve kontrol işletmeni&#10;bilgisayar işletmeni&#10;uzman yardımcısı</textarea>
+        </div>
+
+        <h2>🌐 Kaynaklar</h2>
+        <div class="checkbox-group">
+            <input type="checkbox" id="srcKariyer" checked>
+            <label for="srcKariyer">Kariyer Kapısı</label>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="srcIlan" checked>
+            <label for="srcIlan">İlan.gov.tr</label>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="srcResmiGazete" checked>
+            <label for="srcResmiGazete">Resmî Gazete</label>
+        </div>
+
+        <h2>🔎 Filtreler</h2>
+        <div class="checkbox-group">
+            <input type="checkbox" id="hideExpired" checked>
+            <label for="hideExpired">Süresi geçmişleri gizle</label>
+        </div>
+
+        <div class="form-group">
+            <label>Min. Uygunluk Skoru (%): <span id="scoreVal">20</span></label>
+            <input type="range" id="minScore" min="0" max="100" value="20" oninput="document.getElementById('scoreVal').innerText=this.value">
+        </div>
+
+        <button class="btn-search" onclick="runSearch()">🔎 İLANLARI ARA</button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <div class="header-title">
+            <h1>🎯 KPSS İlan Avcısı</h1>
+        </div>
+        
+        <div class="alert-box">
+            ℹ️ Bu sistem ilanları otomatik tarar, kriterlerinizle eşleştirir ve size uygunluk durumunu sunar.
+        </div>
+
+        <!-- METRICS -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="value" id="mTotalScanned">0</div>
+                <div class="label">Taranan Sayfa / İlan</div>
+            </div>
+            <div class="metric-card">
+                <div class="value" id="mUniqueJobs">0</div>
+                <div class="label">Tekil İlan</div>
+            </div>
+            <div class="metric-card">
+                <div class="value" id="mMatchedJobs">0</div>
+                <div class="label">Profilinize Uygun İlan</div>
+            </div>
+        </div>
+
+        <!-- RESULTS CONTAINER -->
+        <h2 style="margin-bottom: 15px;">📊 Tarama Sonuçları</h2>
+        <div id="resultsContainer">
+            <p style="color: var(--text-muted);">Henüz tarama başlatılmadı. Lütfen sol menüden "İlanları Ara" butonuna basınız.</p>
+        </div>
+
+        <button id="exportBtn" class="export-btn" onclick="exportToCSV()">📥 Sonuçları CSV Olarak İndir</button>
+    </main>
+
+    <script>
+        // ÖRNEK VERİ SETİ (Python tarafında taranan gerçek verilerin simülasyonu)
+        const mockDatabase = [
+            {
+                source: "Kariyer Kapısı",
+                title: "İçişleri Bakanlığı 1.500 Büro Personeli Alım İlanı",
+                url: "https://kariyerkapisi.cbiko.gov.tr/",
+                deadline: "2026-10-25",
+                kpssType: "P3",
+                minKpss: 70.0,
+                departments: ["kamu yönetimi", "siyaset bilimi", "iibf"],
+                qualCodes: ["4001", "6225"],
+                text: "İçişleri Bakanlığı merkez ve taşra teşkilatında çalıştırılmak üzere Lisans mezunu, KPSS P3 puan türünden en az 70 puan almış, Siyaset Bilimi ve Kamu Yönetimi veya İİBF mezunları arasından 6225 nitelik koduna haiz Büro Personeli alınacaktır."
+            },
+            {
+                source: "İlan.gov.tr",
+                title: "Ticaret Bakanlığı Sözleşmeli Uzman Yardımcısı Alımı",
+                url: "https://www.ilan.gov.tr/",
+                deadline: "2026-10-18",
+                kpssType: "P3",
+                minKpss: 75.0,
+                departments: ["iktisat", "işletme", "kamu yönetimi"],
+                qualCodes: ["4001"],
+                text: "Ticaret Bakanlığı bünyesinde görevlendirilmek üzere KPSS P3 türünden en az 75 puan alan lisans mezunları arasından Uzman Yardımcısı alımı yapılacaktır."
+            },
+            {
+                source: "Resmî Gazete",
+                title: "Sağlık Bakanlığı Veri Hazırlama ve Kontrol İşletmeni Alımı",
+                url: "https://www.resmigazete.gov.tr/",
+                deadline: "2026-10-10",
+                kpssType: "P3",
+                minKpss: 65.0,
+                departments: ["herhangi bir lisans"],
+                qualCodes: ["6225"],
+                text: "Sağlık Bakanlığı taşra teşkilatına KPSS P3 en az 65 puanı olan, MEB onaylı Bilgisayar İşletmeni sertifikasına (6225) sahip VHKİ alınacaktır."
+            },
+            {
+                source: "Kariyer Kapısı",
+                title: "Gençlik ve Spor Bakanlığı Gençlik Çalışanı Alımı (Süresi Geçti)",
+                url: "https://kariyerkapisi.cbiko.gov.tr/",
+                deadline: "2026-09-01",
+                kpssType: "P3",
+                minKpss: 60.0,
+                departments: ["kamu yönetimi"],
+                qualCodes: [],
+                text: "Gençlik ve Spor Bakanlığı KPSS P3 60 puan ile Gençlik Çalışanı alımı yapacaktır."
+            }
+        ];
+
+        let lastEvaluatedResults = [];
+
+        function runSearch() {
+            // 1. Profil Bilgilerini Al
+            const userKpss = parseFloat(document.getElementById('kpssScore').value) || 0;
+            const userKpssType = document.getElementById('kpssType').value;
+            const userDepts = document.getElementById('departments').value.toLowerCase().split('\n').filter(e => e.trim());
+            const userCodes = document.getElementById('qualCodes').value.split(',').map(e => e.trim());
+            const hasCert = document.getElementById('hasCert').checked;
+            const targetJobs = document.getElementById('targetJobs').value.toLowerCase().split('\n').filter(e => e.trim());
+            
+            const hideExpired = document.getElementById('hideExpired').checked;
+            const minScoreFilter = parseInt(document.getElementById('minScore').value);
+
+            const today = new Date("2026-10-08"); // Güncel simülasyon tarihi
+
+            let matchedList = [];
+            let totalScanned = mockDatabase.length * 8; // Simüle edilmiş taranan sayfa sayısı
+
+            mockDatabase.forEach(job => {
+                let score = 0;
+                let reasons = [];
+                let warnings = [];
+
+                // Tarih Kontrolü
+                const jobDeadline = new Date(job.deadline);
+                const isExpired = jobDeadline < today;
+
+                if (hideExpired && isExpired) return;
+
+                // KPSS Puan Türü
+                if (job.kpssType === userKpssType) {
+                    score += 25;
+                    reasons.push(`KPSS ${userKpssType} puan türü eşleşti.`);
+                } else {
+                    warnings.push(`İlan Puan Türü: ${job.kpssType}`);
+                }
+
+                // KPSS Taban Puanı
+                if (userKpss >= job.minKpss) {
+                    score += 30;
+                    reasons.push(`KPSS puanınız (${userKpss}), aranılan barajı (${job.minKpss}) karşılıyor.`);
+                } else {
+                    score = 0; // Baraj altı doğrudan elenir
+                    warnings.push(`KPSS Puanınız Yetersiz: ${userKpss} < ${job.minKpss}`);
+                }
+
+                // Bölüm Eşleşmesi
+                let deptMatched = userDepts.some(d => job.departments.some(jd => jd.includes(d) || d.includes(jd)));
+                if (deptMatched) {
+                    score += 30;
+                    reasons.push("Mezuniyet bölümü şartı eşleşiyor.");
+                } else {
+                    warnings.push("Bölüm şartını detaylı inceleyiniz.");
+                }
+
+                // Nitelik Kodları
+                let matchingCodes = userCodes.filter(c => job.qualCodes.includes(c));
+                if (matchingCodes.length > 0) {
+                    score += 15;
+                    reasons.push(`Eşleşen nitelik kodları: ${matchingCodes.join(', ')}`);
+                }
+
+                // Sertifika
+                if (job.qualCodes.includes("6225")) {
+                    if (hasCert) {
+                        score += 10;
+                        reasons.push("Bilgisayar sertifikası şartı (6225) profilinizle uyumlu.");
+                    } else {
+                        warnings.push("İlan 6225 Bilgisayar Sertifikası gerektiriyor.");
+                    }
+                }
+
+                // Karar
+                let verdict = "🟡 KONTROL ET";
+                let badgeClass = "badge-yellow";
+
+                if (score >= 60 && warnings.length <= 1) {
+                    verdict = "🟢 BÜYÜK OLASILIKLA UYGUN";
+                    badgeClass = "badge-green";
+                } else if (score < 40) {
+                    verdict = "🔴 UYGUN DEĞİL";
+                    badgeClass = "badge-red";
+                }
+
+                if (score >= minScoreFilter) {
+                    matchedList.push({
+                        ...job,
+                        score: Math.min(score, 100),
+                        verdict,
+                        badgeClass,
+                        reasons,
+                        warnings,
+                        isExpired
+                    });
+                }
+            });
+
+            // Skora göre sırala
+            matchedList.sort((a, b) => b.score - a.score);
+            lastEvaluatedResults = matchedList;
+
+            // Metrik Güncelleme
+            document.getElementById('mTotalScanned').innerText = totalScanned;
+            document.getElementById('mUniqueJobs').innerText = mockDatabase.length;
+            document.getElementById('mMatchedJobs').innerText = matchedList.length;
+
+            // Arayüzü Çiz
+            renderResults(matchedList);
+        }
+
+        function renderResults(list) {
+            const container = document.getElementById('resultsContainer');
+            const exportBtn = document.getElementById('exportBtn');
+
+            if (list.length === 0) {
+                container.innerHTML = `<p style="color: var(--danger-color);">Aradığınız kriterlere uygun ilan bulunamadı.</p>`;
+                exportBtn.style.display = 'none';
+                return;
+            }
+
+            let html = '';
+            list.forEach(item => {
+                html += `
+                    <div class="job-card">
+                        <div class="job-header">
+                            <span class="job-title">${item.title}</span>
+                            <span class="badge ${item.badgeClass}">${item.verdict} (%${item.score})</span>
+                        </div>
+                        <div class="job-details">
+                            <div>
+                                <p><strong>Kaynak:</strong> ${item.source}</p>
+                                <p><strong>Son Başvuru Tarihi:</strong> ${item.deadline} ${item.isExpired ? '(Süresi Geçti)' : ''}</p>
+                                
+                                ${item.reasons.length ? `<ul class="reasons-list">${item.reasons.map(r => `<li>${r}</li>`).join('')}</ul>` : ''}
+                                ${item.warnings.length ? `<ul class="warnings-list">${item.warnings.map(w => `<li>${w}</li>`).join('')}</ul>` : ''}
+                                
+                                <a href="${item.url}" target="_blank" class="apply-btn">🔗 İlan Sayfasına Git</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            exportBtn.style.display = 'inline-block';
+        }
+
+        function exportToCSV() {
+            if (!lastEvaluatedResults.length) return;
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Kaynak,Baslik,Son Basvuru,Uygunluk Skoru,Durum,URL\n";
+
+            lastEvaluatedResults.forEach(r => {
+                let row = `"${r.source}","${r.title.replace(/"/g, '""')}","${r.deadline}","%${r.score}","${r.verdict}","${r.url}"`;
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `kpss_ilan_sonuclari_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
